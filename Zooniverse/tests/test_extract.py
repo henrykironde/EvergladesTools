@@ -1,20 +1,28 @@
-#test extract bounding classification for DeepForest
+# Test extract bounding classification for DeepForest
 import os
 import sys
-sys.path.append(os.path.dirname(os.getcwd()))
 import pytest
 from .. import extract
 from .. import aggregate
 
+CLASSIFICATIONS_CSV = "data/everglades-watch-classifications.csv"
+IMAGE_DATA = "data/everglades-watch-subjects.csv"
+
+
 @pytest.fixture()
 def run_aggregate():
-    aggregate.run("data/everglades-watch-classifications.csv", min_version=272.359, download=False, generate=False, savedir="output",debug=True)
-    
+    aggregate.run(CLASSIFICATIONS_CSV, min_version=272.359, download=False, generate=False,
+                  savedir="output", debug=True)
+
+
 def test_run(run_aggregate, tmpdir):
-    #create an output image folder is needed
+    # create an output image folder is needed
     if not os.path.exists("output/images/"):
         os.mkdir("output/images/")
-    extract.run(image_data="data/everglades-watch-subjects.csv",  classification_shp="output/everglades-watch-classifications.shp",savedir=tmpdir)
+    classification_out = "output/everglades-watch-classifications.shp"
+    extract.run(image_data=IMAGE_DATA, classification_shp=classification_out, savedir=tmpdir)
 
-def test_extract_empty(run_aggregate, tmpdir):   
-    extract.extract_empty("output/parsed_annotations.csv", image_data="data/everglades-watch-subjects.csv", save_dir=tmpdir)
+
+def test_extract_empty(run_aggregate, tmpdir):
+    parsed_annotations = "output/parsed_annotations.csv"
+    extract.extract_empty(parsed_annotations, image_data=IMAGE_DATA, save_dir=tmpdir)
