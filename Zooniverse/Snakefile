@@ -9,14 +9,17 @@ import numpy as np
 import pandas as pd
 import os
 
-from .nest_detection import detect_nests
+from nest_detection import detect_nests
 
 input_file = "/blue/ewhite/everglades/orthomosaics/detail.csv"
+input_file = "/blue/ewhite/everglades/EvergladesTools/Zooniverse/detail.csv"
 dir_path = "/blue/ewhite/everglades/orthomosaics/"
+dir_path ="/blue/ewhite/everglades/ZTestSnake_henry/orthomosaics"
+
 CURRENT_FILES = []
 
 
-def getmd5(file_path=None, encoding='utf-8'):
+def getmd5(file_path=None, encoding='latin-1'):
     """Get MD5 of a data source."""
     checksum = md5()
     input_file = open(file_path, 'r', encoding=encoding)
@@ -31,19 +34,19 @@ def current_files():
         for name in files:
             root = os.path.abspath(root)
             print(name)
-            if name.strip().endswith(".shp"):
+            if name.strip().endswith(".tif") or name.strip().endswith(".JPG"):
                 x = os.path.normpath(os.path.join(root, name))
                 current_fls.append(x)
     CURRENT_FILES = current_fls
     return current_fls
 
 
-def update_md5(cur_files=None, details_file="detail.csv"):
+def update_md5(cur_files=None, details_file=input_file):
     cur_files = current_files()  # get the current updated files after run
-    details = details_file
-    with open(details, 'w') as dp:
+    with open(details_file, 'w') as dp:
         for fp in cur_files:
             md5_sum = getmd5(fp)
+            print(md5_sum)		
             dp.write("{fp},{md5_sum}\n".format(fp=fp, md5_sum=md5_sum))
 
 
@@ -57,7 +60,7 @@ def aggregate_input(wildcards):
     for root, dirs, files in os.walk(dir_path, topdown=False):
         for name in files:
             root = os.path.abspath(root)
-            if name.strip().endswith(".shp"):
+            if name.strip().endswith(".tif") or name.strip().endswith(".JPG"):
                 x = os.path.normpath(os.path.join(root, name))
                 # print(x)
                 CURRENT_FILES.append(x)
@@ -107,7 +110,7 @@ rule nest_detect:
 	    dirs_Year_site = get_changed_dirs(input.one, year_index, site_index)
 	    for y_s in dirs_Year_site:
 	        path_arg = os.path.join(dir_path,y_s[0],y_s[1])
- 	        detect_nests(path_arg, y_s[0], y_s[1])
+ 	       # detect_nests(path_arg, y_s[0], y_s[1])
 
 	    os.system("echo 22 >> combine_nests_log.txt")
 	    os.system("echo 22 >> nest_detect_log.txt")
