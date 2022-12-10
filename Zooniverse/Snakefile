@@ -7,7 +7,7 @@ from snakemake.io import glob_wildcards, expand
 import pandas as pd
 import numpy as np
 import pandas as pd
-import os
+import time
 
 from nest_detection import detect_nests
 
@@ -21,11 +21,7 @@ CURRENT_FILES = []
 
 def getmd5(file_path=None, encoding='latin-1'):
     """Get MD5 of a data source."""
-    checksum = md5()
-    input_file = open(file_path, 'r', encoding=encoding)
-    for line in input_file:
-        checksum.update(str(line).encode(encoding))
-    return checksum.hexdigest()
+    return os.path.getmtime(file_path)
 
 
 def current_files():
@@ -34,7 +30,7 @@ def current_files():
         for name in files:
             root = os.path.abspath(root)
             print(name)
-            if name.strip().endswith(".tif") or name.strip().endswith(".JPG"):
+            if name.strip().endswith(".tif"):
                 x = os.path.normpath(os.path.join(root, name))
                 current_fls.append(x)
     CURRENT_FILES = current_fls
@@ -45,13 +41,14 @@ def update_md5(cur_files=None, details_file=input_file):
     cur_files = current_files()  # get the current updated files after run
     with open(details_file, 'w') as dp:
         for fp in cur_files:
-            md5_sum = getmd5(fp)
-            print(md5_sum)		
-            dp.write("{fp},{md5_sum}\n".format(fp=fp, md5_sum=md5_sum))
+            if fp:
+                md5_sum = getmd5(fp)
+                #print(md5_sum)		
+                dp.write("{fp},{md5_sum}\n".format(fp=fp, md5_sum=md5_sum))
 
 
 def compare_md5(fpath, last_md5):
-    cur_md5 = getmd5(file_path=fpath)
+    cur_md5 = str(getmd5(file_path=fpath))
     return cur_md5 == last_md5
 
 
@@ -60,14 +57,14 @@ def aggregate_input(wildcards):
     for root, dirs, files in os.walk(dir_path, topdown=False):
         for name in files:
             root = os.path.abspath(root)
-            if name.strip().endswith(".tif") or name.strip().endswith(".JPG"):
+            if name.strip().endswith(".tif"):
                 x = os.path.normpath(os.path.join(root, name))
                 # print(x)
                 CURRENT_FILES.append(x)
     path_md = []
     with open(input_file) as f:
         path_md = f.readlines()
-    path_md = [r.split(",") for r in path_md]
+    path_md = [r.split(",") for r in path_md if r.strip()]
     path_md = [(r[0].strip(), r[1].strip()) for r in path_md]
     OLD_FILES = [r[0] for r in path_md]
     modified_files = [r[0] for r in path_md if not compare_md5(r[0], r[1])]
