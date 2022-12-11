@@ -93,6 +93,18 @@ def get_changed_dirs(changed_files, year_index, site_index):
     return list(year_site)
 
 
+checkpoint somestep:
+      output: "combine_nests_log.txt"
+      shell:'''
+      touch combine_nests_log.txt
+      '''
+
+def aggregate_combine_input(wildcards):
+    checkpoint_output = checkpoints.somestep.get(**wildcards).output[0]
+    return "combine_nests_log.txt"
+
+
+
 rule all:
     input: "nest_detect_log.txt", "process_nests_log.txt", "combine_nests_log.txt", "update_details_log.txt"
 
@@ -115,7 +127,7 @@ rule nest_detect:
 
 
 rule update_details:
-    input: "combine_nests_log.txt"
+    input: aggregate_combine_input
     output: "update_details_log.txt"
     run:
 	    update_md5(current_files())
