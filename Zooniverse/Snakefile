@@ -94,6 +94,7 @@ def get_changed_dirs(changed_files, year_index, site_index):
 
 
 checkpoint somestep:
+      input: "nest_detect_log.txt"
       output: "combine_nests_log.txt"
       shell:'''
       touch combine_nests_log.txt
@@ -127,7 +128,7 @@ rule nest_detect:
 
 
 rule update_details:
-    input: aggregate_combine_input
+    input: "combine_nests_log.txt",aggregate_combine_input
     output: "update_details_log.txt"
     run:
 	    update_md5(current_files())
